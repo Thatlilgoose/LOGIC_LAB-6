@@ -153,71 +153,19 @@ AdjList VertexIdentificationList(const AdjList &L, size_t u, size_t v,bool makel
 }
 
 Matrix VertexSplitting (const Matrix &M, size_t u) {
-    vector<int> Q(M.size(), 0);
-    size_t cnt = 0;
-    for (size_t i = 0; i < M.size(); i++) {
-        if (u == i) {
-            continue;
-        }
-        Q[i] = M[u][i];
-    }
-    vector<size_t> keep;
-    for (size_t i = 0; i < M.size(); i++) {
-        if (i != u) keep.push_back(i);
-    }
-    size_t k = keep.size();
-    Matrix R(k+2, vector<int>(k+2,0) );
-    for (size_t i = 0; i < k; i++) {
-        for (size_t j = 0; j < k; j++) {
-            R[i][j] = M[keep[i]][keep[j]];
-        }
-    }
-    R[k][k] = M[u][u];
-    for (size_t i = 0; i < k; i++) {
-        if (Q[keep[i]] == 1) {
-            if (cnt % 2 == 0) {
-                R[k][i] = 1;
-                R[i][k] = 1;
-
-            } else {
-                R[k+1][i] = 1;
-                R[i][k+1] = 1;
-            }
-            cnt++;
-        }
-    }
-    R[k+1][k] = R[k][k+1] = 1;
-
+    Matrix R = M;
+    for (auto &row : R) row.push_back(0);
+    R.emplace_back(M.size() + 1, 0);
+    R[u][M.size()] = 1;
+    R[M.size()][u] = 1;
     return R;
 }
 
 AdjList VertexSplittingList(const AdjList &L, size_t u) {
-    vector<size_t> keep;
-    size_t count = 0;
-    for (size_t i = 0; i < L.size(); i++) {
-        if (i != u) keep.push_back(i);
-    }
-    size_t k = keep.size();
-    vector<int> newIndex(L.size(),-1);
-    for (size_t j = 0; j < k; j++) newIndex[keep[j]] = static_cast<int>(j);
-    AdjList R(k + 2);
-    for (size_t j = 0; j < k; j++) {
-        size_t old = keep[j];
-        for (size_t w : L[old]) {
-            if (newIndex[w] != -1) R[j].push_back(newIndex[w]);
-        }
-    }
-    for (size_t w : L[u]) {
-        if (w == u) continue;
-        size_t target = (count % 2 == 0) ? k : k + 1;
-        size_t j = newIndex[w];
-        R[j].push_back(static_cast<int>(target));
-        R[target].push_back(static_cast<int>(j));
-        count++;
-    }
-    if (HasLoop(L, u, u)) R[k].push_back(static_cast<int>(k));
-    R[k].push_back(static_cast<int>(k + 1));
-    R[k + 1].push_back(static_cast<int>(k));
+    AdjList R = L;
+    R.emplace_back();
+    R[u].push_back(static_cast<int>(L.size()));
+    R.back().push_back(static_cast<int>(u));
     return R;
 }
 
